@@ -14,19 +14,19 @@ productprice = Hash.new
 product_price = 0
 
 loop do 
-	puts "Введите название товара, его цену и количество: "
-	product = gets.chomp
-	if product != "стоп"
-		cost = gets.chomp.to_f
-		quantity = gets.chomp.to_f
-		cartprice = Hash.new
-		cartprice[cost] = quantity
-		cart[product] = cartprice
-		product_price = cost * quantity
-		productprice[product] = product_price
-	else 
-		break
-	end
+  puts "Введите название товара, его цену и количество: "
+  product = gets.chomp
+  if product != "стоп"
+    cost = gets.chomp.to_f
+    quantity = gets.chomp.to_f
+    cartprice = Hash.new
+    cartprice[cost] = quantity
+    cart[product] = cartprice
+    product_price = cost * quantity
+    productprice[product] = product_price
+  else 
+    break
+  end
 end
 
 price = 0

@@ -11,21 +11,24 @@
 puts "Введите число, месяц и год: "
 date, month, year = gets.chomp.to_i, gets.chomp.to_i, gets.chomp.to_i
 if year % 4 == 0
-	if year % 100 == 0
-		if year % 400 == 0
-			n = 29
-		else n = 28
-		end
-	else n = 29
-	end
-else n = 28
+  if year % 100 == 0
+    if year % 400 == 0
+      n = 29
+    else 
+      n = 28
+    end
+  else 
+    n = 29
+  end
+else 
+  n = 28
 end
 
 daysmonth = Hash.new 
 daysmonth = { 1 => 31, 2 => n, 3 => 31, 4 => 30, 5 => 31, 6 => 30, 7 => 31, 8 => 31, 9 => 30, 10 => 31, 11 => 30, 12 => 31 }
 sum = 0
 for i in 1..(month - 1)
-	sum += daysmonth[i]
+  sum += daysmonth[i]
 end
 daysnumber = 0
 daysnumber = sum + date 

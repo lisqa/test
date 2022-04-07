@@ -3,13 +3,9 @@
 aeiouy
 =end
 
-arr_alphabet = []
-("a".."z").each { |i| arr_alphabet << i }
-alphabet = Hash.new 
-for i in 0..25
-	alphabet[arr_alphabet[i]] = (i + 1)
-end
-
+arr_alphabet = ("a".."z").to_a
+alphabet = {} 
+(0..25).each { |i| alphabet[arr_alphabet[i]] = (i + 1) }
 arr_vowels = ["a", "e", "i", "o", "u", "y"] 
-vowels = Hash.new
+vowels = {}
 vowels = alphabet.select { |key, value| arr_vowels.include?(key) }
