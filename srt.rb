@@ -8,37 +8,26 @@
 =end
 
 class Station
-
-  attr_accessor :train_comes, :train_leaves
-  
+  attr_accessor :train_comes, :train_leaves, :trains
+    
   def initialize(station)
     @station = station
-    @freight = []
-    @passenger = []
+    @trains = []
   end
 
-  def train_comes(type, number)
-    if type == "freight"
-      @freight << number
-    else
-      @passenger << number
-    end
+  def train_comes(number, type)
+    @trains << [number, type]
   end
 
-  def list_of_trains
-    fre = @freight.length
-    pass = @passenger.length
-    return {"freight" => fre, "passenger" => pass}
+  def trains_type
+    freight = 0
+    @trains.each { |n, t| freight += 1 if t == "freight" }
+    return {"freight" => freight, "passenger" => (@trains.length - freight) }
   end
 
-  def train_leaves(type, number)
-    if type == "freight"
-      @freight.delete(number)
-    else
-      @passenger.delete(number)
-    end
+  def train_leaves(number, type)
+    @trains.delete([number, type])
   end
-
 end
 
 =begin 
@@ -51,28 +40,19 @@ end
 =end
 
 class Route
-
-  attr_accessor :add_station, :remove_station
-  attr_reader :inner_stations, :route
-
-  def initialize(first_station, end_station, inner_stations = [])    
-    @first_station = first_station
-    @end_station = end_station
-    @inner_stations = inner_stations
+  attr_accessor :add_station, :remove_station, :route_stations
+  
+  def initialize(first_station, end_station, *inner_stations)    
+    @route_stations = [first_station, *inner_stations, end_station]
   end
 
-  def route
-    @route = [@first_station, @end_station].insert(1, @inner_stations).flatten
+  def add_station(station)
+    @route_stations.insert(-2, station)
   end
 
-  def add_station(station_n)
-    @inner_stations << station_n
+  def remove_station(station)
+    @route_stations.delete(station)
   end
-
-  def remove_station(station_n)
-    @inner_stations.delete(station_n)
-  end
-
 end
 
 =begin 
@@ -92,16 +72,15 @@ end
 =end
 
 class Train
-
-  attr_accessor :go, :start, :forward, :i, :back
-  attr_reader :speed, :wagons, :train_station
-  attr_writer :route
+  attr_accessor :go, :current_station_index, :train, :train_start, :route
+  attr_reader :speed, :wagons
+  
   
   def initialize(number, type, wagons)
     @number = number.to_s 
     @type = type
     @wagons = wagons.to_i 
-    @start = {}
+    @train = [@number, @type, @wagons]
   end
 
   def go(speed)
@@ -117,29 +96,34 @@ class Train
   end
 
   def remove_wagons
-    @wagons -= 1 if @speed == 0
+    @wagons -= 1 if @speed == 0 && @wagons >= 1
   end
 
-  def start(number, route)
-    @i = 0
-    @start = {number => route.route[@i]}
+  def train_start(route)
+    @route = route.route_stations
+    @current_station_index = 0
+    { @train => @route[@current_station_index] }
   end
 
-  def forward(number, route)
-    @i += 1
-    @start = {number => route.route[@i]}
+  def train_forward
+    @current_station_index += 1
+    { @train => @route[@current_station_index] }
   end
 
-  def back(number, route)
-    @i -= 1
-    @start = {number => route.route[@i]}
+  def train_back
+    @current_station_index -= 1
+    { @train => @route[@current_station_index] }
   end    
 
-  def train_station(number, route)
-    next_st = route.route[@i+1]
-    previos_st = route.route[@i-1]
-    current_st = route.route[@i]
-    return {"previos station" => previos_st, "current station" => current_st, "next station" => next_st}
+  def train_current_station
+    @route[@current_station_index]
   end
-  
+
+  def train_next_station
+    @route[@current_station_index+1]
+  end
+
+  def train_previos_station
+    @route[@current_station_index-1]
+  end
 end
