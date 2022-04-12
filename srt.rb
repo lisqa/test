@@ -8,10 +8,11 @@
 =end
 
 class Station
-  attr_accessor :trains
+  attr_reader :trains, :station
     
   def initialize(station)
-    @station = station    
+    @station = station
+    @trains = []
   end
 
   def train_comes(train)
@@ -19,13 +20,11 @@ class Station
   end
 
   def trains_by(type)
-    train_type1 = @trains.select {|train| type == train.type}    
-    return train_type1    
+    @trains.select {|train| type == train.type}    
   end
 
   def count_trains_by(type)
-    train_type1 = @trains.select {|train| type == train.type}    
-    return train_type1.length    
+    self.trains_by(type).length    
   end
 
   def train_leaves(train)
@@ -45,7 +44,7 @@ end
 class Route
   attr_accessor :route_stations
   
-  def initialize(first_station, end_station)    
+  def initialize(first_station, end_station)
     @route_stations = [first_station, end_station]
   end
 
@@ -54,7 +53,7 @@ class Route
   end
 
   def remove_station(station)
-    if station != @route_stations[0] && station != @route_stations[-1]
+    if station != @first_station && station != @end_station
       @route_stations.delete(station)
     end
   end
@@ -77,8 +76,9 @@ end
 =end
 
 class Train
-  attr_accessor :speed, :wagons, :number, :type, :train_route
-  
+  attr_accessor :speed, :wagons, :number, :type
+  attr_writer :train_route #может принимать маршрут следования
+
   def initialize(number, type, wagons)
     @number = number.to_s 
     @type = type
@@ -101,39 +101,27 @@ class Train
     @wagons -= 1 if @speed == 0 && @wagons >= 1
   end
 
-  def train_start(route)
-    @train_route = route.route_stations
-    @current_station_index = 0
-    @train_route[0]
-  end
- 
-  def forward
-    if @train_route[-1] != @train_route[@current_station_index]
-      @current_station_index += 1
-    end
-    @train_route[@current_station_index]
+  def train_route(route) #перемещает поезд на первую станцию в маршруте
+    route.route_stations[0].train_comes(self) 
   end
 
-  def back
-    if @current_station_index != 0
-      @current_station_index -= 1
-    end
-    @train_route[@current_station_index]
+  def next_station(route, station) #возвращает следующую станцию в маршруте
+    route.route_stations[route.route_stations.index(station)+1] 
   end
 
-  def current
-    @train_route[@current_station_index]
+  def back_station(route, station) 
+    route.route_stations[route.route_stations.index(station)-1] if route.route_stations.index(station) > 0
   end
 
-  def next_station
-    if @train_route[-1] != @train_route[@current_station_index]
-      @train_route[@current_station_index+1]
-    end
+  def go_next_from(route, station) #перемещает поезд на следующую станцию в маршруте
+    route.route_stations[route.route_stations.index(station)+1].train_comes(self)
   end
 
-  def previos_station
-    if @train_route[0] != @train_route[@current_station_index]
-      @train_route[@current_station_index-1]
-    end
+  def go_back_from(route, station)
+    route.route_stations[route.route_stations.index(station)-1].train_comes(self) if route.route_stations.index(station) > 0
   end
-end
+
+  def current_station(route) #определяет текущую станцию
+    route.route_stations.select { |station| station if station.trains.include?(self) }
+  end
+end 
