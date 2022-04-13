@@ -8,10 +8,10 @@
 =end
 
 class Station
-  attr_reader :trains, :station
+  attr_reader :trains, :name
     
   def initialize(station)
-    @station = station
+    @name = station
     @trains = []
   end
 
@@ -42,19 +42,19 @@ end
 =end
 
 class Route
-  attr_accessor :route_stations
+  attr_accessor :list_of_stations
   
   def initialize(first_station, end_station)
-    @route_stations = [first_station, end_station]
+    @list_of_stations = [first_station, end_station]
   end
 
   def add_station(station)
-    @route_stations.insert(-2, station)
+    @list_of_stations.insert(-2, station)
   end
 
   def remove_station(station)
-    if station != @first_station && station != @end_station
-      @route_stations.delete(station)
+    if station != @list_of_stations[0] && station != @list_of_stations[-1]
+      @list_of_stations.delete(station)
     end
   end
 end
@@ -76,8 +76,7 @@ end
 =end
 
 class Train
-  attr_accessor :speed, :wagons, :number, :type
-  attr_writer :train_route #может принимать маршрут следования
+  attr_accessor :speed, :wagons, :number, :type, :train_route, :train_station, :station_index
 
   def initialize(number, type, wagons)
     @number = number.to_s 
@@ -101,27 +100,43 @@ class Train
     @wagons -= 1 if @speed == 0 && @wagons >= 1
   end
 
-  def train_route(route) #перемещает поезд на первую станцию в маршруте
-    route.route_stations[0].train_comes(self) 
+  def train_route(route)
+    @train_route = route 
+    @station_index = 0
+    self.train_station
   end
 
-  def next_station(route, station) #возвращает следующую станцию в маршруте
-    route.route_stations[route.route_stations.index(station)+1] 
+  def station_index(station) #индекс станции
+    @station_index = @train_route.list_of_stations.index(station)
   end
 
-  def back_station(route, station) 
-    route.route_stations[route.route_stations.index(station)-1] if route.route_stations.index(station) > 0
+  def train_station #текущая станция
+    @train_route.list_of_stations[@station_index]
   end
 
-  def go_next_from(route, station) #перемещает поезд на следующую станцию в маршруте
-    route.route_stations[route.route_stations.index(station)+1].train_comes(self)
+  def go_next_from(station) #перемещает поезд на следующую станцию в маршруте
+    if station == self.train_station && self.next_station(station)
+      @train_station = self.next_station(station)
+      self.station_index(@train_station)
+    else
+      @train_station = @train_route.list_of_stations[@station_index]
+    end
   end
 
-  def go_back_from(route, station)
-    route.route_stations[route.route_stations.index(station)-1].train_comes(self) if route.route_stations.index(station) > 0
+  def go_back_from(station)
+    if station == self.train_station && self.station_index(station) > 0
+      @train_station = self.back_station(station)
+      self.station_index(@train_station)
+    else
+      @train_station = @train_route.list_of_stations[@station_index]
+    end
   end
 
-  def current_station(route) #определяет текущую станцию
-    route.route_stations.select { |station| station if station.trains.include?(self) }
+  def next_station(station) #возвращает следующую станцию в маршруте
+    @train_route.list_of_stations[self.station_index(station)+1]
   end
+
+  def back_station(station) 
+    @train_route.list_of_stations[self.station_index(station)-1] if self.station_index(station) > 0
+  end  
 end 
